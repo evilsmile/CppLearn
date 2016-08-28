@@ -1,6 +1,7 @@
 CXXFLAGS+=-g
 
-all:wait
+BINS=wait shm
+all:${BINS}
 
 clean:
-	rm -rf wait
+	rm -rf ${BINS}
