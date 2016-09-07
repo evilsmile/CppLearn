@@ -1,3 +1,6 @@
+/* 
+ * 连接服务端，传递打开文件的描述符给服务端，由服务端进行文件写
+ */
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
@@ -63,13 +66,17 @@ int main(int argc, char* argv[])
     msg.msg_iov = iov;
     msg.msg_iovlen = 1;
 
+    //设置缓冲区和长度
     msg.msg_control = control_un.control;
     msg.msg_controllen = sizeof(control_un.control);
 
+    // 通过CMSG_FIRSTHDR取得附属数据
     pcmsg = CMSG_FIRSTHDR(&msg);
     pcmsg->cmsg_len = CMSG_LEN(sizeof(int));
     pcmsg->cmsg_level = SOL_SOCKET;
+    // 指明要发送的描述符
     pcmsg->cmsg_type = SCM_RIGHTS;
+    // 写入要传递的描述符
     *((int*)CMSG_DATA(pcmsg)) = fd;
 
     ret = sendmsg(clifd, &msg, 0);

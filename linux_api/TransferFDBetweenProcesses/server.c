@@ -82,6 +82,7 @@ int main(int argc, char* argv[])
             return ret;
         }
 
+        // 检查是否收到合法的附属数据
         if ((pcmsg = CMSG_FIRSTHDR(&msg)) != NULL && (pcmsg->cmsg_len == CMSG_LEN(sizeof(int))))
         {
             if (pcmsg->cmsg_level != SOL_SOCKET)
@@ -96,6 +97,7 @@ int main(int argc, char* argv[])
                 continue;
             }
 
+            // 取出接收到的描述符
             recvfd = *((int*)CMSG_DATA(pcmsg));
             printf("recv fd = %d\n", recvfd);
 
