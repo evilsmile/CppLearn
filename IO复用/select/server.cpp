@@ -18,13 +18,16 @@ static const std::string IPADDR = "127.0.0.1";
 static const int PORT = 8787;
 static const int LISTENQ = 5;
 
+void* thread(void *args);
+
 class Server {
 public:
 	Server(const std::string& ip, int port) : _ip(ip), _port(port){};
 	~Server();
 	int init();
 	int create_server_proc();
-	void handle_client_proc(int srvfd);
+    int create_accept_thread();
+	void handle_client_proc();
 
 private:
 	static const int MAXLINE = 1024;
@@ -50,9 +53,12 @@ private:
 	int handle_client_msg(int fd, char *buf);
 	void recv_client_msg(fd_set* readfds);
 
+    friend void* thread(void *args);
+
 private:
 	std::string _ip;
 	int _port;
+    int _srvfd;
 	ServerContext* s_srv_ctx;
 };
 
@@ -104,6 +110,8 @@ int Server::create_server_proc()
 		return -2;
 	}
 	::listen(fd, LISTENQ);
+
+    _srvfd = fd;
 
 	return fd;
 }
@@ -186,7 +194,7 @@ void Server::recv_client_msg(fd_set* readfds)
 	}
 }
 
-void Server::handle_client_proc(int srvfd)
+void Server::handle_client_proc()
 {
 	int clifd = -1;
 	int retval = 0;
@@ -196,8 +204,8 @@ void Server::handle_client_proc(int srvfd)
 
 	while(true) {
 		FD_ZERO(readfds);
-		FD_SET(srvfd, readfds);
-		s_srv_ctx->maxfd = srvfd;
+		FD_SET(_srvfd, readfds);
+		s_srv_ctx->maxfd = _srvfd;
 
 		tv.tv_sec = 30;
 		tv.tv_usec = 0;
@@ -221,13 +229,91 @@ void Server::handle_client_proc(int srvfd)
 			return;
 		}
 
-		// 如果是srvfd，则表示有客户端连接，调用accept处理函数
-		if (FD_ISSET(srvfd, readfds)) {
-			accept_client_proc(srvfd);
+        pthread_t thread_id = pthread_self();
+        std::cout << "thread " << thread_id << " select result: " << retval << std::endl;
+        sleep(1);
+        continue;
+		// 如果是_srvfd，则表示有客户端连接，调用accept处理函数
+		if (FD_ISSET(_srvfd, readfds)) {
+			accept_client_proc(_srvfd);
 		} else {
 			recv_client_msg(readfds);
 		}
 	}
+}
+
+int Server::create_accept_thread()
+{
+    pthread_t threadid;
+
+    if (pthread_create(&threadid, NULL, thread, (void*)this) < 0) {
+        std::cerr << "create thread failed!\n";
+        return -1;
+    }
+    std::cout << "create thread success!" << threadid << std::endl;
+
+    handle_client_proc();
+
+    void *ret;
+    pthread_join(threadid, (void**)&ret);
+
+    free(ret);
+
+    return 0;
+}
+
+void* thread(void *args)
+{
+    Server *s = reinterpret_cast<Server*>(args);
+    Server::ServerContext* s_srv_ctx = s->s_srv_ctx;
+    int srvfd = s->_srvfd;
+
+	int clifd = -1;
+	int retval = 0;
+	fd_set *readfds = &s_srv_ctx->allfds;
+	struct timeval tv;
+	int i = 0;
+
+	while(true) {
+		FD_ZERO(readfds);
+		FD_SET(srvfd, readfds);
+		s_srv_ctx->maxfd = srvfd;
+
+		tv.tv_sec = 30;
+		tv.tv_usec = 0;
+
+		for (i = 0; i < s_srv_ctx->cli_cnt; ++i) {
+			clifd = s_srv_ctx->clifds[i];
+			FD_SET(clifd, readfds);
+			s_srv_ctx->maxfd = (clifd > s_srv_ctx->maxfd ? clifd : s_srv_ctx->maxfd);
+		}
+
+		//两个线程如果都不处理select的话将会一直通知
+		retval = select(s_srv_ctx->maxfd + 1, readfds, NULL, NULL, &tv);
+
+		if (retval == -1) {
+			std::cerr << "select error![" << strerror(errno) << "]" << std::endl;
+			return NULL;
+		}
+
+		if (retval == 0) {
+			std::cout << "select timeout!" << std::endl;
+			return NULL;
+		}
+
+        pthread_t thread_id = pthread_self();
+        std::cout << "thread " << thread_id << " select result: " << retval << std::endl;
+        sleep(1);
+        continue;
+		// 如果是srvfd，则表示有客户端连接，调用accept处理函数
+		if (FD_ISSET(srvfd, readfds)) {
+			s->accept_client_proc(srvfd);
+		} else {
+			s->recv_client_msg(readfds);
+		}
+	}
+
+    return NULL;
 }
 
 int main(int argc, char* argv[])
@@ -236,12 +322,14 @@ int main(int argc, char* argv[])
 	if (server.init() != 0) {
 		return -1;		
 	}
+
 	int srvfd;
 	srvfd = server.create_server_proc();
 	if (srvfd < 0) {
 		return -2;
 	}
-	server.handle_client_proc(srvfd);
+
+    server.create_accept_thread();
 
 	return 0;
 }
