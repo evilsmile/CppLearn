@@ -17,7 +17,8 @@ int main()
     memset(&serv_addr, 0, sizeof(struct sockaddr_in));
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_port = htons(8888);
-    inet_pton(AF_INET, "localhost", &serv_addr.sin_addr.s_addr);
+    inet_pton(PF_INET, "192.168.206.130", &serv_addr.sin_addr.s_addr);
+    //inet_pton(AF_INET, "localhost", &serv_addr.sin_addr.s_addr);
 
     int sk = socket(AF_INET, SOCK_STREAM, 0);
     if (sk < 0) {
@@ -109,10 +110,8 @@ int main()
         perror("connect socket failed");
         return -1;
     }
-    /*
     int ret = write(sk, "hello", 5);
     printf("write %d bytes\n", ret);
-    */
 
     sleep(880);
 
