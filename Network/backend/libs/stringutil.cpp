@@ -2,6 +2,21 @@
 
 #include "stringutil.h"
 
+void splitString(const std::string& data, char sep, std::vector<std::string>& out)
+{
+	std::size_t start = 0, end;
+	while (true) {
+		end = data.find(sep, start);
+		if (end == std::string::npos) {
+			out.push_back(data.substr(start));
+			break;
+		}
+
+		out.push_back(data.substr(start, end-start));		
+		start = end + 1;
+	}
+}
+
 void splitStringToMap(const std::string& data, char sep_lev1, char sep_lev2, key_value_t& map_out)
 {
 		std::string key, value;
