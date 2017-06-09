@@ -32,8 +32,8 @@ class MysqlAPI {
 						const std::string& user,
 						const std::string& passwd,
 						const std::string& db);
-		MysqlRowSetPtr query(const std::string& sql);
-		int update(const std::string& sql);
+		MysqlRowSetPtr query(const char* fmt, ...);
+		int update(const char* fmt, ...);
 	private:
 		MYSQL* _mysql_conn;
 

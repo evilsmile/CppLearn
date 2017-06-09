@@ -1,5 +1,10 @@
+#include <stdarg.h>
+#include <stdio.h>
+
 #include "api_mysql.h"
 #include "log.h"
+
+static const int SQL_BUF_SIZ = 4096;
 
 MysqlRowSet::MysqlRowSet(MYSQL_RES* res_set) : _res_set(res_set)
 {
@@ -70,21 +75,40 @@ int MysqlAPI::init(const std::string& host_ip,
 	return error;
 }
 
-MysqlRowSetPtr MysqlAPI::query(const std::string& sql)
+MysqlRowSetPtr MysqlAPI::query(const char* fmt, ...)
 {
-	log_trace("select-sql: %s", sql.c_str());
-	int error = mysql_query(_mysql_conn, sql.c_str());
+    char sql_buf[SQL_BUF_SIZ+1] = {0};
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsnprintf(sql_buf, SQL_BUF_SIZ, fmt, ap);
+    va_end(ap);
+    sql_buf[n] = 0;
+
+	log_trace("select-sql: %s", sql_buf);
+	int error = mysql_query(_mysql_conn, sql_buf);
 	if (error) {
-		log_error("query failed");
+		log_error("mysql error:[%d][%s]", mysql_errno(_mysql_conn), mysql_error(_mysql_conn));
 		return MysqlRowSetPtr(NULL);
 	}
 
 	return MysqlRowSetPtr(new MysqlRowSet(mysql_store_result(_mysql_conn)));
 }
 
-int MysqlAPI::update(const std::string& sql)
+int MysqlAPI::update(const char* fmt, ...)
 {
-	log_trace("update-sql: %s", sql.c_str());
-	mysql_query(_mysql_conn, sql.c_str());
+    char sql_buf[SQL_BUF_SIZ+1] = {0};
+    va_list ap;
+    va_start(ap, fmt);
+    int n = vsnprintf(sql_buf, SQL_BUF_SIZ, fmt, ap);
+    va_end(ap);
+    sql_buf[n] = 0;
+
+	log_trace("update-sql: %s", sql_buf);
+	int error = mysql_query(_mysql_conn, sql_buf);
+    if (error) {
+        log_error("mysql error:[%d][%s]", mysql_errno(_mysql_conn), mysql_error(_mysql_conn));
+        return -1;
+    }
+
 	return mysql_affected_rows(_mysql_conn);
 }
