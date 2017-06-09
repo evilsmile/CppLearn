@@ -5,6 +5,8 @@
 
 namespace Const {
 
+const std::string CONFIG_FILENAME = "config.xml";
+
 const int PORT = 8888;
 
 const std::string MYSQL_HOST_IP = "localhost";

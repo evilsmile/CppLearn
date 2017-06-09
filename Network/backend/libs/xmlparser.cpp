@@ -58,9 +58,20 @@ int XmlParser::getValueByPath(const std::string& path, std::string& value)
 	}
 
 	if (element) {
-		value = element->Value();
+		value = element->GetText();
 		return 0;
 	}
 
 	return -1;
+}
+
+std::string XmlParser::getValueByPath(const std::string& path)
+{
+    std::string value;
+    int ret = getValueByPath(path, value);
+    if (ret) {
+        return "";
+    }
+    return value;
+
 }
