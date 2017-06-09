@@ -8,7 +8,7 @@ all:liblog.a libutil.a
 liblog.a:log.o 
 	ar r -o $@ $^
 
-libutil.a:stringutil.o	api_mysql.o xmlparser.o
+libutil.a:stringutil.o	api_mysql.o xmlparser.o server.o
 	ar r -o $@ $^
 
 test:test.cpp  libutil.a liblog.a 

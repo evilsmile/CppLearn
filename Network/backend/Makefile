@@ -1,8 +1,8 @@
 CXXFLAGS=-g -I./include
 
-all:server test.cgi 
+all:server-1 test.cgi 
 
-server:server.cpp libs/liblog.a libs/libutil.a
+server-1:server1.cpp libs/liblog.a libs/libutil.a include/config.h
 	$(CXX) $(CXXFLAGS) -o $@ $^ -lmysqlclient
 
 test.cgi:test_cgi.cpp libs/liblog.a 
