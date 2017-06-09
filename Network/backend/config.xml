@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<es>
+	<mysql>
+		<ip>localhost</ip>
+		<port>3306</port>
+		<user>root</user>
+		<passwd>123aruto</passwd>
+		<db>es</db>
+	</mysql>
+</es>
+</xml>
