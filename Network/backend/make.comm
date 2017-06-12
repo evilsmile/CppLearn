@@ -1,0 +1,7 @@
+CXXFLAGS+=-g -I./include
+
+CPPS=$(shell ls *.cpp)
+OBJS=$(patsubst %.cpp,%.o,${CPPS})
+
+${BIN}:${OBJS} ${STATIC_LIBS}
+	$(CXX) ${CXXFLAGS} -o $@ $^ ${SHARED_LIBS}
