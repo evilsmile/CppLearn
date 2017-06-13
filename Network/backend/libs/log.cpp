@@ -76,13 +76,16 @@ int log(LOG_LEVEL level, const char* file, int line, const char *function, const
 	buf[n++] = '\n';
 	buf[n] = 0;
 	
-	std::string log_file_path = log_dir + "/" + log_file;
-	
-	std::ofstream out;
-	out.open(log_file_path.c_str(), std::ofstream::out | std::ofstream::app);
-	out << buf;
-	out.close();
 
+    if (!log_file.empty()) {
+        std::string log_file_path = log_dir + "/" + log_file;
+        std::ofstream out;
+        out.open(log_file_path.c_str(), std::ofstream::out | std::ofstream::app);
+        out << buf;
+        out.close();
+    } else {
+        std::cout << buf;
+    }
 
 	return 0;
 }
