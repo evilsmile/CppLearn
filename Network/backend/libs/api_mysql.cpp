@@ -65,7 +65,11 @@ int MysqlAPI::init(const std::string& host_ip,
 								host_port,
 								NULL, 
 								0) == NULL) {
-			log_error("connect mysql failed.");
+            log_error("connect mysql failed. [%s:%d | %s-%s]", 
+                    host_ip.c_str(),
+                    host_port,
+                    user.c_str(),
+                    passwd.c_str());
 			error = -1;
 			break;
 		}
