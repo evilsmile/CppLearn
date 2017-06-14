@@ -19,8 +19,9 @@
 static MysqlAPI mysqlApi;
 XmlParser config_parser;
 
-int handle_request(const std::string& request)
+int handle_request(ClientConn client_conn)
 {
+    std::string request = client_conn.getData();
     key_value_t params;
 
     splitStringToMap(request, '&', '=', params);
@@ -53,19 +54,26 @@ int handle_request(const std::string& request)
 
 int main()
 {
-    init_log("server-1");	
-    log_trace("service-1 start");
+    init_log("user_manager");
 
-    config_parser.loadFile("../../" + Const::CONFIG_FILENAME);
+    int error = 0;
 
-    mysqlApi.init(config_parser.getValueByPath("/es/mysql/ip"),
+    error = config_parser.loadFile("../../config/" + Const::CONFIG_FILENAME);
+    if (error) {
+        return -1;
+    }
+
+    error = mysqlApi.init(config_parser.getValueByPath("/es/mysql/ip"),
             atoi(config_parser.getValueByPath("/es/mysql/port").c_str()),
             config_parser.getValueByPath("/es/mysql/user"),
             config_parser.getValueByPath("/es/mysql/passwd"),
             config_parser.getValueByPath("/es/mysql/db")
             );
+    if (error) {
+        return -1;
+    }
 
-    Server server("", Const::PORT, handle_request);
+    Server server("0.0.0.0", Const::PORT, handle_request);
 
     server.start();
 
