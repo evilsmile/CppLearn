@@ -4,7 +4,7 @@
 		<ip>localhost</ip>
 		<port>3306</port>
 		<user>root</user>
-		<passwd>123aruto</passwd>
+		<passwd>123Naruto</passwd>
 		<db>es</db>
 	</mysql>
 </es>
