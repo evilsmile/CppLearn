@@ -1,17 +1,17 @@
 CXXFLAGS= -g -I../include -I./
 
-all:liblog.a libutil.a 
+CPPS=$(shell ls *.cpp)
+OBJS=$(patsubst %.cpp,%.o,${CPPS})
+
+all:libutil.a 
 
 .a.o:
 	ar r -o $@ $<
 
-liblog.a:log.o 
+libutil.a:${OBJS}
 	ar r -o $@ $^
 
-libutil.a:stringutil.o	api_mysql.o xmlparser.o server.o
-	ar r -o $@ $^
-
-test:test.cpp  libutil.a liblog.a 
+test:test.cpp  libutil.a 
 	$(CXX) ${CXXFLAGS} -o $@ $^ -ltinyxml2
 	./test
 	

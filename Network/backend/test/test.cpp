@@ -1,5 +1,6 @@
 #include <json/json.h>
 #include <log.h>
+#include <httputil.h>
 
 #include <string>
 
@@ -52,9 +53,16 @@ void test_json()
     log_trace("new_json: %s", new_json.c_str());
 }
 
+void test_httputil()
+{
+    HttpUtil http_util;
+    http_util.get("www.baidu.com");
+}
+
 int main()
 {
-    test_json();
+//    test_json();
+    test_httputil();
 
     return 0;
 }
