@@ -34,6 +34,8 @@ int init_log(const std::string& filename)
 {
 	log_file = filename + ".log";
 
+    log_trace("--------------- %s start ----------", filename.c_str());
+
 	return 0;
 }
 
