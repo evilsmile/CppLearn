@@ -8,7 +8,7 @@
 #include <fstream>
 
 #include "log.h"
-#define LOG_BUF_SIZ 512
+#define LOG_BUF_SIZ 4096
 
 static std::string log_dir = "/tmp/log/";
 static std::string log_file;
@@ -61,7 +61,7 @@ int log(LOG_LEVEL level, const char* file, int line, const char *function, const
 	}
 
 	int n = 0;
-	char buf[521] = {0};
+	char buf[LOG_BUF_SIZ] = {0};
 
 	n += sprintf(buf+n , "[%s][%s][%s:%d][%s][%ld] ", now_time().c_str(), s_level.c_str(), file, line, function, (long)pthread_self());
 
