@@ -5,3 +5,6 @@ OBJS=$(patsubst %.cpp,%.o,${CPPS})
 
 ${BIN}:${OBJS} ${STATIC_LIBS}
 	$(CXX) ${CXXFLAGS} -o $@ $^ ${SHARED_LIBS}
+
+clean:
+	rm -f ${BIN} ${OBJS}

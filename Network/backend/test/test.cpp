@@ -37,7 +37,8 @@ void test_json()
     // writer test
 
     std::string cars[] = { "Lamborghini", "Meserati", "GTR" };
-    Json::FastWriter writer;
+    Json::StyledWriter writer;
+    //Json::FastWriter writer;
     Json::Value jw_root;
     Json::Value jw_sub;
     for (int i = 0; i < sizeof(cars)/sizeof(cars[0]); i++) {

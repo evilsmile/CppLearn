@@ -1,15 +1,13 @@
-CXXFLAGS=-g -I./include
+DIRS=libs servers test
 
-all:server-1 test.cgi 
-
-server-1:server1.cpp libs/liblog.a libs/libutil.a include/config.h
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lmysqlclient -ltinyxml2
-
-test.cgi:test_cgi.cpp libs/liblog.a 
-	$(CXX) $(CXXFLAGS) -o $@ $^ -lcgicc -lfcgi
-
-install:
-	cp -f test.cgi /usr/local/nginx/web_dev/cgi-bin/
+all:
+	@for dir in ${DIRS}; do \
+		make -C $$dir; \
+	done
 
 clean:
-	$(RM) -f server 
+	@for dir in ${DIRS}; do \
+		make -C $$dir clean; \
+	done
+
+
