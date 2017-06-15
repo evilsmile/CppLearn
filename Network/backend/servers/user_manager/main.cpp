@@ -19,6 +19,25 @@
 static MysqlAPI mysqlApi;
 XmlParser config_parser;
 
+int send_reply(int fd, const std::string& reply)
+{
+    int written = 0;
+    while (written < reply.size()) {
+        int n = write(fd, reply.c_str() + written, reply.size() - written);
+        if (n < 0) {
+            log_error("send reply failed. written[%d]", written);
+            return -1;
+        }
+        written += n;
+    }
+
+    log_error("send reply [%d] bytes", written);
+
+    close(fd);
+
+    return 0;
+}
+
 int handle_request(ClientConn client_conn)
 {
     std::string request = client_conn.getData();
@@ -48,6 +67,8 @@ int handle_request(ClientConn client_conn)
         log_error("update failed.");
         return -2;
     }
+
+    send_reply(client_conn.getFD(), "SUCC");
 
     return 0;
 }
