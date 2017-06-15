@@ -1,4 +1,4 @@
-DIRS=libs servers test
+DIRS=libs servers test cgis
 
 all:
 	@for dir in ${DIRS}; do \
