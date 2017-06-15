@@ -1,6 +1,4 @@
 .*swp
 tags
-libs/test
-server-1
-server1.cpp
-test.cgi
+*/test
+*.cgi
