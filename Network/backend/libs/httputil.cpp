@@ -7,9 +7,24 @@
 HttpUtil::HttpUtil()
  : _received(0)
 {
+    curl_global_init(CURL_GLOBAL_ALL);
+
+    _shared_curl = curl_share_init();
+    curl_share_setopt(_shared_curl, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
 }
 
-int HttpUtil::dowrite(void *buffer, size_t size, size_t nmemb, void *data)
+HttpUtil::~HttpUtil()
+{
+    curl_global_cleanup();
+}
+
+void HttpUtil::set_shared_handle(CURL *handle) 
+{
+    curl_easy_setopt(handle, CURLOPT_SHARE, _shared_curl);
+    curl_easy_setopt(handle, CURLOPT_DNS_CACHE_TIMEOUT, 60 * 6);
+}
+
+int HttpUtil::do_write(void *buffer, size_t size, size_t nmemb, void *data)
 {
     HttpUtil *http_util = (HttpUtil*)data;
 
@@ -41,9 +56,11 @@ bool HttpUtil::get(const std::string& url)
 
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, dowrite);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, do_write);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 
+    // 共享dns解析线程，加快速度
+    set_shared_handle(curl);
     res = curl_easy_perform(curl);
     int status_code = 500;
     if (res == CURLE_OK) {
@@ -52,9 +69,9 @@ bool HttpUtil::get(const std::string& url)
     curl_easy_cleanup(curl);
 
     if (res == CURLE_OK && status_code == 200) {
-        log_trace("access url succ");
+        log_trace("GET succ.");
     } else {
-        log_error("access url failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
+        log_error("Get failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
         return false;
     }
 
@@ -80,8 +97,11 @@ bool HttpUtil::post(const std::string& url, const std::string& data)
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, dowrite);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, do_write);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+
+    // 共享dns解析线程，加快速度
+    set_shared_handle(curl);
 
     res = curl_easy_perform(curl);
     int status_code = 500;
@@ -91,12 +111,11 @@ bool HttpUtil::post(const std::string& url, const std::string& data)
     curl_easy_cleanup(curl);
 
     if (res == CURLE_OK && status_code == 200) {
-        log_trace("access url succ");
+        log_trace("Post succ.");
     } else {
-        log_error("access url failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
+        log_error("Post failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
         return false;
     }
-
 
     return true;
 }

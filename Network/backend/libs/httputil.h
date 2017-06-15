@@ -8,14 +8,18 @@
 class HttpUtil {
     public:
         HttpUtil();
+        ~HttpUtil();
 
         bool get(const std::string& url);
 
         bool post(const std::string& url, const std::string& data);
 
     private:
-        static int dowrite(void *buffer, size_t size, size_t nmemb, void *stream);
+        static int do_write(void *buffer, size_t size, size_t nmemb, void *stream);
 
+        void set_shared_handle(CURL *handle);
+
+        CURLSH* _shared_curl;
     private:
         int _received;
         std::string _reply_data;
