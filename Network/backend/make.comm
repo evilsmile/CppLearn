@@ -1,4 +1,4 @@
-CXXFLAGS+=-g -I./include -I../include -I../../include -I../ -I../..
+CXXFLAGS+=-g -I./include -I../include -I../../include -I../libs -I../../libs
 
 CPPS=$(shell ls *.cpp)
 OBJS=$(patsubst %.cpp,%.o,${CPPS})
