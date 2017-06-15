@@ -1,7 +1,27 @@
 #!/bin/bash
 
-pid=$(netstat -lpn | grep -w 8088 | awk '{print $NF}' | sed 's!/.*!!g');
+CGI_DIR=/usr/local/nginx/web_dev/cgi-bin/
+SPAWN_BIN=/usr/local/nginx/sbin/spawn-fcgi 
 
-kill -9 $pid;
+function restart_cgi()
+{
+    PORTS=$1
+    CGI_NAME=$2
 
-/usr/local/nginx/sbin/spawn-fcgi -a 127.0.0.1 -p 8088 -f /usr/local/nginx/web_dev/cgi-bin/test.cgi
+    pid=$(netstat -lpn | egrep -w "($PORTS)" | awk '{print $NF}' | sed 's!/.*!!g');
+    kill -9 $pid;
+
+    echo "$PORTS" | sed 's/|/\n/' | while read port  ; do
+        $SPAWN_BIN -a 127.0.0.1 -p $port -f $CGI_DIR/${CGI_NAME}
+    done
+}
+
+function restart_gate()
+{
+    CGI_NAME=gate.cgi 
+    PORTS="8088|8089"
+    
+    restart_cgi $PORTS $CGI_NAME
+}
+
+restart_gate
