@@ -8,9 +8,10 @@
 class HttpUtil {
     public:
         HttpUtil();
-        bool init();
 
         bool get(const std::string& url);
+
+        bool post(const std::string& url, const std::string& data);
 
     private:
         static int dowrite(void *buffer, size_t size, size_t nmemb, void *stream);
@@ -18,7 +19,6 @@ class HttpUtil {
     private:
         int _received;
         std::string _reply_data;
-        CURL* _curl;
 
 };
 

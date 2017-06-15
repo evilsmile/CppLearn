@@ -1,12 +1,12 @@
+
 LIB64_DIR=/usr/local/lib64/
 JSON_LIB=${LIB64_DIR}/libjsoncpp.a
-LOG_LIB=../libs/libutil.a
+STATIC_LIBS=${JSON_LIB} ../libs/libutil.a
 
-DEP_LIBS=${JSON_LIB} ${LOG_LIB}
 CXX=g++
-CXXFLAGS=-g -I../include -I../libs
-LDFLAGS=-lcurl
+CXXFLAGS=${LIBS}
+SHARED_LIBS=-lcurl
 
-all:test
+BIN=test 
 
-test:test.cpp ${DEP_LIBS}
+include ../make.comm

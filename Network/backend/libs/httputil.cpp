@@ -5,21 +5,9 @@
 #include "log.h"
 
 HttpUtil::HttpUtil()
- : _curl(NULL), _received(0)
+ : _received(0)
 {
 }
-
-bool HttpUtil::init()
-{
-    _curl = curl_easy_init();
-    if (!_curl) {
-        log_error("curl init failed");
-        return false;
-    }
-
-    return true;
-}
-
 
 int HttpUtil::dowrite(void *buffer, size_t size, size_t nmemb, void *data)
 {
@@ -45,24 +33,62 @@ bool HttpUtil::get(const std::string& url)
     log_trace("Get url: %s", url.c_str());
 
     CURLcode res;
-
-    if (_curl == NULL) {
-        if (!init()) {
-            return false;
-        }
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        log_error("curl init failed.");
+        return false;
     }
 
-    curl_easy_setopt(_curl, CURLOPT_TIMEOUT, 120);
-    curl_easy_setopt(_curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(_curl, CURLOPT_WRITEFUNCTION, dowrite);
-    curl_easy_setopt(_curl, CURLOPT_WRITEDATA, this);
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, dowrite);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
 
-    res = curl_easy_perform(_curl);
+    res = curl_easy_perform(curl);
     int status_code = 500;
     if (res == CURLE_OK) {
-        curl_easy_getinfo(_curl, CURLINFO_RESPONSE_CODE, &status_code);
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
     }
-    curl_easy_cleanup(_curl);
+    curl_easy_cleanup(curl);
+
+    if (res == CURLE_OK && status_code == 200) {
+        log_trace("access url succ");
+    } else {
+        log_error("access url failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
+        return false;
+    }
+
+
+    return true;
+}
+
+bool HttpUtil::post(const std::string& url, const std::string& data)
+{
+    log_trace("Post url: %s => %s", url.c_str(), data.c_str());
+
+    CURLcode res;
+
+    CURL* curl = curl_easy_init();
+    if (!curl) {
+        log_error("curl init failed.");
+        return false;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
+    curl_easy_setopt(curl, CURLOPT_ENCODING, "UTF-8");
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, dowrite);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+
+    res = curl_easy_perform(curl);
+    int status_code = 500;
+    if (res == CURLE_OK) {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
+    }
+    curl_easy_cleanup(curl);
 
     if (res == CURLE_OK && status_code == 200) {
         log_trace("access url succ");

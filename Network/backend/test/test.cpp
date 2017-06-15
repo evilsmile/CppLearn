@@ -56,12 +56,35 @@ void test_json()
 void test_httputil()
 {
     HttpUtil http_util;
-    http_util.get("www.baidu.com");
+  //  http_util.get("www.baidu.com");
+
+    std::string post_data = " {"
+        "\"from\":\"h5\","
+            "\"to\":\"trade\","
+            "\"info\":{},"
+            "\"action\":\"pay\","
+            "\"data\":{},"
+            "\"pay\":{"
+                "\"user_agent\":\"alipay\","
+                "\"amount\":1,"
+                "\"goods_name\":\"phone\","
+                "\"mch_id\":\"160000000020939\","
+                "\"mch_name\":\"evil\","
+                "\"order_id\":\"123123124124124\","
+                "\"term_id\":\"243\""
+            "}"
+       "}";
+
+    if (http_util.post("http://qrpos.tfb8.com/cgi-bin/tfb_gate.cgi", post_data) == false) {
+        log_error("post data failed.");
+        return ;
+    }
+
 }
 
 int main()
 {
-//    test_json();
+    //    test_json();
     test_httputil();
 
     return 0;
