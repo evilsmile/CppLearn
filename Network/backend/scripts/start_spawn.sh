@@ -11,8 +11,10 @@ function restart_cgi()
     pid=$(netstat -lpn | egrep -w "($PORTS)" | awk '{print $NF}' | sed 's!/.*!!g');
     kill -9 $pid;
 
+    idx=0
     echo "$PORTS" | sed 's/|/\n/' | while read port  ; do
-        $SPAWN_BIN -a 127.0.0.1 -p $port -f $CGI_DIR/${CGI_NAME}
+        $SPAWN_BIN -a 127.0.0.1 -p $port -f "$CGI_DIR/${CGI_NAME} $idx"
+        idx=$((idx+1))
     done
 }
 

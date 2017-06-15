@@ -17,9 +17,13 @@
 #include "libs/log.h"
 #include "config.h"
 
-int main()
+int main(int argc, char *argv[])
 {	  
-    init_log("gate.cgi");
+    std::string idx = "0";
+    if (argc > 1) {
+        idx = argv[1];
+    }
+    init_log("gate.cgi" + idx);
     while (FCGI_Accept() >= 0) { 
         do { 
             log_trace("Enter...");
