@@ -5,6 +5,9 @@
 #include "httputil.h"
 #include "log.h"
 
+static const int DEBUG_FLAG = 1;
+static const int DEFAULT_TIMEOUT = 120;
+
 HttpUtil::HttpUtil()
  : _received(0)
 {
@@ -30,7 +33,6 @@ int HttpUtil::do_write(void *buffer, size_t size, size_t nmemb, void *data)
     HttpUtil *http_util = (HttpUtil*)data;
 
     std::string reply_data;
-    int received = http_util->_received;
 
     size_t data_len = size * nmemb;
     reply_data.resize(data_len);
@@ -46,6 +48,12 @@ int HttpUtil::do_write(void *buffer, size_t size, size_t nmemb, void *data)
 
 bool HttpUtil::get(const std::string& url)
 {
+    headers_t headers;
+    return get(url, headers, -1);
+}
+
+bool HttpUtil::get(const std::string& url, const headers_t& headers, int timeout)
+{
     log_trace("Get url: %s", url.c_str());
 
     CURLcode res;
@@ -55,10 +63,19 @@ bool HttpUtil::get(const std::string& url)
         return false;
     }
 
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
+    struct curl_slist *c_headers = NULL;
+    for (int i = 0; i < headers.size(); ++i) {
+        c_headers = curl_slist_append(c_headers, headers[i].c_str());
+    }
+
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout>0?timeout:DEFAULT_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, DEBUG_FLAG);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, do_write);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, this);
+    if (c_headers) {
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, c_headers);
+    }
 
     // 共享dns解析线程，加快速度
     set_shared_handle(curl);
@@ -68,6 +85,9 @@ bool HttpUtil::get(const std::string& url)
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
     }
     curl_easy_cleanup(curl);
+    if (c_headers) {
+        curl_slist_free_all(c_headers);
+    }
 
     if (res == CURLE_OK && status_code == 200) {
         log_trace("GET succ.");
@@ -82,6 +102,12 @@ bool HttpUtil::get(const std::string& url)
 
 bool HttpUtil::post(const std::string& url, const std::string& data)
 {
+    headers_t headers;
+    return post(url, data, headers, -1);
+}
+
+bool HttpUtil::post(const std::string& url, const std::string& data, const headers_t& headers, int timeout)
+{
     log_trace("Post url: %s => %s", url.c_str(), data.c_str());
 
     CURLcode res;
@@ -92,11 +118,20 @@ bool HttpUtil::post(const std::string& url, const std::string& data)
         return false;
     }
 
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 120);
+    struct curl_slist *c_headers = NULL;
+    for (int i = 0; i < headers.size(); ++i) {
+        c_headers = curl_slist_append(c_headers, headers[i].c_str());
+    }
+
+    if (c_headers) {
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, c_headers);
+    }
+
+    curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout>0?timeout:DEFAULT_TIMEOUT);
     curl_easy_setopt(curl, CURLOPT_ENCODING, "UTF-8");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, DEBUG_FLAG);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, do_write);
@@ -111,6 +146,9 @@ bool HttpUtil::post(const std::string& url, const std::string& data)
         curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
     }
     curl_easy_cleanup(curl);
+    if (c_headers) {
+        curl_slist_free_all(c_headers);
+    }
 
     if (res == CURLE_OK && status_code == 200) {
         log_trace("Post succ.");
