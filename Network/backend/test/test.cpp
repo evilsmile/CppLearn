@@ -1,6 +1,7 @@
 #include <json/json.h>
 #include <log.h>
 #include <httputil.h>
+#include <boost/scoped_ptr.hpp>
 
 #include <string>
 
@@ -53,11 +54,19 @@ void test_json()
     log_trace("new_json: %s", new_json.c_str());
 }
 
+class MyProgressHandler : public HttpUtil::ProgressHandler {
+    public:
+        virtual int handle(int dlnow, int dltotal) {
+            log_trace("(%d / %d (%g %%))", dlnow, dltotal, dlnow*100.0/dltotal);
+        }
+};
+
 void test_httputil()
 {
     HttpUtil http_util;
 
-//    http_util.downloadPage("www.sina.com.cn", "outfile");
+    MyProgressHandler myPH;
+    http_util.downloadPage("www.sina.com.cn", "outfile", true, &myPH);
   //  http_util.get("www.baidu.com");
 
     std::string post_data = " {"

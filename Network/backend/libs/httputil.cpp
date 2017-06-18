@@ -160,7 +160,15 @@ bool HttpUtil::post(const std::string& url, const std::string& data, const heade
     return true;
 }
 
-bool HttpUtil::downloadPage(const std::string& url, const std::string& outfile_name)
+int HttpUtil::progress_cb(void *data, double dltotal, double dlnow, double ultotal, double ulnow)
+{
+    ProgressHandler *handler = (ProgressHandler*)data;
+    handler->handle(dlnow, dltotal);
+
+    return 0;
+}
+
+bool HttpUtil::downloadPage(const std::string& url, const std::string& outfile_name, bool show_progress, ProgressHandler* handler)
 {
     CURLcode res;
 
@@ -180,6 +188,12 @@ bool HttpUtil::downloadPage(const std::string& url, const std::string& outfile_n
 
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_fp);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, DEBUG_FLAG);
+    if (show_progress) {
+        curl_easy_setopt(curl, CURLOPT_NOPROGRESS, 0L);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSFUNCTION, progress_cb);
+        curl_easy_setopt(curl, CURLOPT_PROGRESSDATA, handler);
+    }
 
     set_shared_handle(curl);
 
