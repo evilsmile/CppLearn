@@ -56,6 +56,7 @@ void test_json()
 void test_httputil()
 {
     HttpUtil http_util;
+    http_util.downloadPage("www.sina.com.cn", "outfile");
   //  http_util.get("www.baidu.com");
 
     std::string post_data = " {"
@@ -75,9 +76,12 @@ void test_httputil()
             "}"
        "}";
 
+#define TEST_CNT 1
+    for(int i = 0; i < TEST_CNT; ++i) {
     if (http_util.post("http://qrpos.tfb8.com/cgi-bin/tfb_gate.cgi", post_data) == false) {
         log_error("post data failed.");
         return ;
+    }
     }
 
 }

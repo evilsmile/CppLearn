@@ -1,5 +1,6 @@
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 
 #include "httputil.h"
 #include "log.h"
@@ -95,6 +96,7 @@ bool HttpUtil::post(const std::string& url, const std::string& data)
     curl_easy_setopt(curl, CURLOPT_ENCODING, "UTF-8");
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1);
     curl_easy_setopt(curl, CURLOPT_POST, 1);
     curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, do_write);
@@ -114,6 +116,48 @@ bool HttpUtil::post(const std::string& url, const std::string& data)
         log_trace("Post succ.");
     } else {
         log_error("Post failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
+        return false;
+    }
+
+    return true;
+}
+
+bool HttpUtil::downloadPage(const std::string& url, const std::string& outfile_name)
+{
+    CURLcode res;
+
+    CURL* curl = curl_easy_init();
+
+    if (!curl) {
+        log_error("curl init failed.");
+        return false;
+    }
+
+    FILE* out_fp = NULL;
+    out_fp = fopen(outfile_name.c_str(), "w");
+    if (!out_fp) {
+        log_error("open file '%s' failed.", outfile_name.c_str());
+        return false;
+    }
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_fp);
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+
+    set_shared_handle(curl);
+
+    res = curl_easy_perform(curl);
+    fclose(out_fp);
+
+    int status_code = 500;
+    if (res == CURLE_OK) {
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &status_code);
+    }
+    curl_easy_cleanup(curl);
+
+    if (res == CURLE_OK && status_code == 200) {
+        log_trace("download succ.");
+    } else {
+        log_error("Download failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
         return false;
     }
 

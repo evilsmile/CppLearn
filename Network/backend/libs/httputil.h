@@ -14,6 +14,8 @@ class HttpUtil {
 
         bool post(const std::string& url, const std::string& data);
 
+        bool downloadPage(const std::string& url, const std::string& outfile_name);
+
     private:
         static int do_write(void *buffer, size_t size, size_t nmemb, void *stream);
 
