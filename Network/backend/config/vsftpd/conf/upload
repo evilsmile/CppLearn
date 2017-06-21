@@ -1,0 +1,6 @@
+local_root=/home/ftpsecure/upload
+write_enable=NO
+anon_upload_enable=YES
+anon_mkdir_write_enable=YES
+anon_world_readable_only=NO
+download_enable=NO

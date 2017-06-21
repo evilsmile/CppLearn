@@ -1,0 +1,8 @@
+local_root=/home/ftpsecure/admin
+guest_enable=YES
+guest_username=ftpsecure
+anon_world_readable_only=NO
+write_enable=YES
+anon_mkdir_write_enable=YES
+anon_other_write_enable=YES
+anon_upload_enable=YES
