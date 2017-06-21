@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <fstream>
+#include <sys/stat.h>
 
 #include "httputil.h"
 #include "log.h"
@@ -210,6 +211,107 @@ bool HttpUtil::downloadPage(const std::string& url, const std::string& outfile_n
         log_trace("download succ.");
     } else {
         log_error("Download failed: status_code[%d] errmsg[%s]", status_code, curl_easy_strerror(res));
+        return false;
+    }
+
+    return true;
+}
+
+bool HttpUtil::ftp_get(const std::string& url, const std::string& identity, const std::string& target_file, const std::string& out_file)
+{
+    if (target_file.empty()) {
+        log_error("please give me the filename you want to download!");
+        return false;
+    }
+
+    CURLcode res;
+
+    CURL* curl = curl_easy_init();
+
+    if (!curl) {
+        log_error("curl init failed.");
+        return false;
+    }
+
+    FILE* out_fp = NULL;
+    std::string to_file = out_file.empty() ? target_file:out_file;
+    out_fp = fopen(to_file.c_str(), "w");
+    if (!out_fp) {
+        log_error("open file '%s' failed.", to_file.c_str());
+        return false;
+    }
+
+    std::string whole_ftp_path = url +"/" + target_file;
+
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_fp);
+    curl_easy_setopt(curl, CURLOPT_URL, whole_ftp_path.c_str());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, DEBUG_FLAG);
+    curl_easy_setopt(curl, CURLOPT_USERPWD, identity.c_str());
+
+    set_shared_handle(curl);
+
+    res = curl_easy_perform(curl);
+    fclose(out_fp);
+
+    curl_easy_cleanup(curl);
+
+    if (res == CURLE_OK) {
+        log_trace("FTP download file '%s' succ. Store it to [%s]", target_file.c_str(), to_file.c_str());
+    } else {
+        log_error("FTP download file '%s' failed: errmsg[%s]", target_file.c_str(), curl_easy_strerror(res));
+        return false;
+    }
+
+    return true;
+}
+
+bool HttpUtil::ftp_put(const std::string& url, const std::string& identity, const std::string& upload_file)
+{
+    CURLcode res;
+
+    CURL* curl = curl_easy_init();
+
+    if (!curl) {
+        log_error("curl init failed.");
+        return false;
+    }
+
+    struct stat fileinfo;
+    if (stat(upload_file.c_str(), &fileinfo)) {
+        log_error("open upload file '%s' failed.", upload_file.c_str());
+        return false;
+    }
+
+    curl_off_t filesize = (curl_off_t)fileinfo.st_size;
+
+    FILE* read_fp = NULL;
+
+    read_fp = fopen(upload_file.c_str(), "r");
+    if (!read_fp) {
+        log_error("open upload file '%s' failed.", upload_file.c_str());
+        return false;
+    }
+
+    std::string upload_ftp_path = url + "/" + upload_file;
+
+    curl_easy_setopt(curl, CURLOPT_READDATA, read_fp);
+    curl_easy_setopt(curl, CURLOPT_URL, upload_ftp_path.c_str());
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, DEBUG_FLAG);
+    curl_easy_setopt(curl, CURLOPT_USERPWD, identity.c_str());
+    curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+    curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, filesize);
+
+    set_shared_handle(curl);
+
+    res = curl_easy_perform(curl);
+    fclose(read_fp);
+
+    curl_easy_cleanup(curl);
+
+    if (res == CURLE_OK) {
+        log_trace("FTP upload file '%s' succ.", upload_file.c_str());
+    } else {
+        log_error("FTP upload file '%s' failed: errmsg[%s]", upload_file.c_str(), curl_easy_strerror(res));
         return false;
     }
 

@@ -19,6 +19,7 @@ class HttpUtil {
         HttpUtil();
         ~HttpUtil();
 
+        ////////////////// HTTP ////////////////////
         bool get(const std::string& url);
 
         bool get(const std::string& url, const headers_t& headers, int timeout);
@@ -27,6 +28,12 @@ class HttpUtil {
 
         bool post(const std::string& url, const std::string& data, const headers_t& headers, int timeout);
 
+        ////////////////// FTP ////////////////////
+        bool ftp_get(const std::string& url, const std::string& identity, const std::string& target_file, const std::string& outfile = "");
+
+        bool ftp_put(const std::string& url, const std::string& identity, const std::string& upload_file);
+
+        ////////////////////// 
         bool downloadPage(const std::string& url, const std::string& outfile_name, bool show_progress = false, ProgressHandler* handler = NULL);
 
     private:
