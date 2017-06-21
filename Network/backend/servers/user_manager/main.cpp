@@ -15,9 +15,10 @@
 #include "libs/api_mysql.h"
 #include "libs/server.h"
 #include "libs/xmlparser.h"
+#include "libs/config_helper.h"
 
 static MysqlAPI mysqlApi;
-XmlParser config_parser;
+Config config_parser;
 
 int send_reply(int fd, const std::string& reply)
 {
@@ -91,20 +92,11 @@ int main(int argc, char* argv[])
 
     int error = 0;
 
-    std::string standard_config_file = Const::CONFIG_FILENAME;
-    if (argc > 1) {
-        standard_config_file = argv[1];
-    }
-    error = config_parser.loadFile(standard_config_file);
-    if (error) {
-        return -1;
-    }
-
-    error = mysqlApi.init(config_parser.getValueByPath("/es/mysql/ip"),
-            atoi(config_parser.getValueByPath("/es/mysql/port").c_str()),
-            config_parser.getValueByPath("/es/mysql/user"),
-            config_parser.getValueByPath("/es/mysql/passwd"),
-            config_parser.getValueByPath("/es/mysql/db")
+    error = mysqlApi.init(config_parser.get_str("/es/mysql/ip"),
+            config_parser.get_int("/es/mysql/port"),
+            config_parser.get_str("/es/mysql/user"),
+            config_parser.get_str("/es/mysql/passwd"),
+            config_parser.get_str("/es/mysql/db")
             );
     if (error) {
         return -1;

@@ -3,6 +3,8 @@ CXXFLAGS+=-g -I./include -I../include -I../../include -I../libs -I../../libs
 CPPS=$(shell ls *.cpp)
 OBJS=$(patsubst %.cpp,%.o,${CPPS})
 
+TOP_DIR=../..
+
 ${BIN}:${OBJS} ${STATIC_LIBS}
 	$(CXX) ${CXXFLAGS} -o $@ $^ ${SHARED_LIBS}
 
@@ -10,7 +12,12 @@ ${CGI}:${OBJS} ${STATIC_LIBS}
 	$(CXX) ${CXXFLAGS} -o $@ $^ ${SHARED_LIBS}
 
 install:
-	cp -f ${CGI} /usr/local/nginx/web_dev/cgi-bin/
+	if [ ! -z "${CGI}" ]; then \
+		cp -f ${CGI} /usr/local/nginx/web_dev/cgi-bin/;   \
+		fi
+	if [ ! -z "${BIN}" ]; then \
+		cp -f ${BIN} ${TOP_DIR}/bin; \
+		fi
 
 clean:
 	rm -f ${BIN} ${OBJS}
