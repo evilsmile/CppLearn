@@ -92,6 +92,8 @@ int main(int argc, char* argv[])
 
     int error = 0;
 
+    config_parser.init(argc, argv);
+
     error = mysqlApi.init(config_parser.get_str("/es/mysql/ip"),
             config_parser.get_int("/es/mysql/port"),
             config_parser.get_str("/es/mysql/user"),
