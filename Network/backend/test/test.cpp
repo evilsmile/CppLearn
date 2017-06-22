@@ -4,6 +4,8 @@
 
 #include <string>
 
+#include <url_util.h>
+
 extern void test_httputil();
 
 void test_json()
@@ -56,11 +58,18 @@ void test_json()
 }
 
 
+void test_url_endecode()
+{
+    std::string test = "123 45&*89";
+    std::cout << url_encode(test) << std::endl;
+    std::cout << url_decode(url_encode(test)) << std::endl;
+}
 
 int main()
 {
     //    test_json();
-    test_httputil();
+    // test_httputil();
+    test_url_endecode();
 
     return 0;
 }
