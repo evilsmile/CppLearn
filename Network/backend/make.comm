@@ -5,6 +5,9 @@ OBJS=$(patsubst %.cpp,%.o,${CPPS})
 
 TOP_DIR=../..
 
+CGI_INSTALL_DIR=/usr/local/nginx/web_dev/cgi-bin/
+SERVICE_INSTALL_DIR=${TOP_DIR}/bin/
+
 ${BIN}:${OBJS} ${STATIC_LIBS}
 	$(CXX) ${CXXFLAGS} -o $@ $^ ${SHARED_LIBS}
 
@@ -12,11 +15,13 @@ ${CGI}:${OBJS} ${STATIC_LIBS}
 	$(CXX) ${CXXFLAGS} -o $@ $^ ${SHARED_LIBS}
 
 install:
-	if [ ! -z "${CGI}" ]; then \
-		cp -f ${CGI} /usr/local/nginx/web_dev/cgi-bin/;   \
+	@if [ ! -z "${CGI}" ]; then \
+        echo "install ${CGI} to ${CGI_INSTALL_DIR} "; \
+		cp -f ${CGI}  ${CGI_INSTALL_DIR} ; \
 		fi
-	if [ ! -z "${BIN}" ]; then \
-		cp -f ${BIN} ${TOP_DIR}/bin; \
+	@if [ ! -z "${BIN}" ]; then \
+        echo "[install ${BIN} to ${SERVICE_INSTALL_DIR}] "; \
+		cp -f ${BIN} ${SERVICE_INSTALL_DIR}; \
 		fi
 
 clean:

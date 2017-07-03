@@ -10,12 +10,13 @@
 #include <config.h>
 #include <common.h>
 
-#include "libs/log.h"
-#include "libs/stringutil.h"
-#include "libs/api_mysql.h"
-#include "libs/server.h"
-#include "libs/xmlparser.h"
-#include "libs/config_helper.h"
+#include <libs/log.h>
+#include <libs/stringutil.h>
+#include <libs/api_mysql.h>
+#include <libs/server.h>
+#include <libs/url_util.h>
+#include <libs/xmlparser.h>
+#include <libs/config_helper.h>
 
 static MysqlAPI mysqlApi;
 Config config_parser;
@@ -63,8 +64,8 @@ int handle_request(ClientConn client_conn)
             break;
         }
 
-        std::string name = params["name"];
-        std::string age = params["age"];
+        std::string name = url_decode(params["name"]);
+        std::string age = url_decode(params["age"]);
 
         MysqlRowSetPtr res = mysqlApi.query("SELECT age FROM es.lovers WHERE name='%s'", name.c_str());
         if (res.get() == NULL || !res->next()) {
