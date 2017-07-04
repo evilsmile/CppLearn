@@ -11,4 +11,6 @@
 
 #curl 'localhost:81/lua_call_subreq'
 
-curl 'localhost:81/lua_redis?key=mood'
+#curl 'localhost:81/lua_redis?key=mood'
+
+curl 'localhost:81/lua_ver'
