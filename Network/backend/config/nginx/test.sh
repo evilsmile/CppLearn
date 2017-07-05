@@ -13,4 +13,7 @@
 
 #curl 'localhost:81/lua_redis?key=mood'
 
-curl 'localhost:81/lua_ver'
+#curl 'localhost:81/lua_ver'
+
+#curl -A "Spalding sent HELLLO" 'localhost:81/lua_content_file/1/8' -d "post_param=333&post_param2=777"
+curl -A "Spalding sent HELLLO" 'localhost:81/lua_content_file/1/8?arg_param=123&arg_param2=334' -d "post_param=333&post_param2=777"
