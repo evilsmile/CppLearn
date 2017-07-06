@@ -9,7 +9,8 @@ fi
 function do_test()
 {
 #    curl $opt 'localhost:82/lua_shared_data'
-    curl $opt 'localhost:82/main'
+#    curl $opt 'localhost:82/main'
+    curl $opt 'localhost:82/lua_rewrite'
 
    # curl 'localhost:82/lua_api_test'
 }
