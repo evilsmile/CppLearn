@@ -23,4 +23,9 @@ fi
 #curl $opt -A "Spalding sent HELLLO" 'localhost:81/lua_content_file/1/8?arg_param=1 23&arg_param2=334' -d "post_param=333&post_param2=777"
 
 #curl $opt 'localhost:81/lua_redirect'
-curl $opt 'localhost:81/lua_shared_data'
+#curl $opt 'localhost:81/lua_shared_data'
+
+#curl 'localhost:81/lua_api_test'
+
+#curl 'localhost:81/login'
+curl 'localhost:81/login?user=evil'
