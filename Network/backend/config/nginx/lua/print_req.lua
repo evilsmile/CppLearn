@@ -85,3 +85,6 @@ print_t(decoded_uri);
 local base64_encode = ngx.encode_base64("321");
 ngx.say("base64 encode: ", base64_encode);
 ngx.say("base64 decode: ", ngx.decode_base64(base64_encode));
+
+
+-- ngx.redirect("http://www.baidu.com", 302);
