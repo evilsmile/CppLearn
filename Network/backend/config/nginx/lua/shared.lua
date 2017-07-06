@@ -7,5 +7,5 @@ if not i then
 end
 
 i = shared_data:incr("i", 1);
-ngx.say("i=", i);
+ngx.say("visited ", i, " times since start-up");
 
