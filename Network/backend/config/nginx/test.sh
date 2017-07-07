@@ -28,6 +28,6 @@ function do_the_thing()
     $curl_cmd 'localhost:81/login?user=evil'
 }
 
-do_test
+#do_test
 
-#do_the_thing
+do_the_thing
