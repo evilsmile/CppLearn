@@ -11,7 +11,7 @@ curl_cmd="curl $opt"
 function do_test()
 {
 #    $curl_cmd 'localhost:82/lua_shared_data'
-#    $curl_cmd 'localhost:82/main'
+    $curl_cmd 'localhost:82/main'
 #    $curl_cmd 'localhost:82/lua_rewrite'
     
    # $curl_cmd 'localhost:82/lua_api_test'
@@ -28,6 +28,6 @@ function do_the_thing()
     $curl_cmd 'localhost:81/login?user=evil'
 }
 
-#do_test
+do_test
 
 do_the_thing
