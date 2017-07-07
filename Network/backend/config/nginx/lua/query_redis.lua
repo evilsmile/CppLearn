@@ -29,6 +29,7 @@ local res = ngx.location.capture("/redis", capture_param);
 if res.status == 200 then
    reply = parser.parse_reply(res.body);
    if not reply then
+       ngx.resp.status = 500
        ngx.say("No result from in redis");
     else
        ngx.say(reply);
