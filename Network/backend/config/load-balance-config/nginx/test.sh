@@ -26,8 +26,9 @@ function do_the_thing()
 {
     $curl_cmd 'localhost:81/login?user=old_evil'
     $curl_cmd 'localhost:81/login?user=evil'
+    $curl_cmd 'localhost:81/haproxy_health_chk'
 }
 
-do_test
+#do_test
 
 do_the_thing
