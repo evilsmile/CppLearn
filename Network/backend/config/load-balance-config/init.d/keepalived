@@ -1,0 +1,58 @@
+#!/bin/bash
+#
+# Startup script for the Keepalived daemon
+#
+# processname: keepalived
+# chkconfig: - 21 79
+# description: Start and stop Keepalived
+
+# Source function library
+. /etc/init.d/functions
+
+# Source configuration file (we set KEEPALIVED_OPTIONS there)
+#. /etc/sysconfig/keepalived
+
+CWD=$(pwd)
+
+rc=0
+
+KEEPALIVED_DIR=/opt/keepalived-1.3.5/
+KEEPALIVED_BIN=${KEEPALIVED_DIR}/sbin/keepalived
+KEEPALIVED_PID_FILE=${HAPROXY_DIR}/log/keepalived.pid
+
+KEEPALIVED_CONFIG=${KEEPALIVED_DIR}/etc/keepalived/keepalived.conf
+
+# See how we were called.
+case "$1" in
+  start)
+	[ "$EUID" != "0" ] && exit 4
+ 
+    $KEEPALIVED_BIN $KEEPALIVED_OPTIONS -f $KEEPALIVED_CONFIG &
+    ;;
+
+  stop)
+	[ "$EUID" != "0" ] && exit 4
+    rc=0
+    kill $(ps -o pid -C keepalived --no-header)
+    ;;
+
+  status)
+    echo ""
+	;;
+
+   reload)
+    echo "" 
+    ;;
+
+  restart)
+    cd "$CWD"
+	$0 stop
+	$0 start
+	rc=$?
+	;;
+  *)
+    echo $"Usage: $0 {start|stop|status|restart|reload}"
+    exit 2
+esac
+
+exit $rc

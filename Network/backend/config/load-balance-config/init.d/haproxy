@@ -1,0 +1,54 @@
+#! /bin/bash
+#
+# chkconfig: 2345 10 90
+# description: Activates/Deactivates all network interfaces configured to \
+#              start at boot time.
+#
+### BEGIN INIT INFO
+### END INIT INFO
+
+# Source function library.
+. /etc/init.d/functions
+
+CWD=$(pwd)
+
+rc=0
+
+HAPROXY_DIR=/opt/haproxy-1.7.8/
+HAPROXY_BIN=${HAPROXY_DIR}/sbin/haproxy
+HAPROXY_PID_FILE=${HAPROXY_DIR}/log/haproxy.pid
+
+HAPROXY_CONFIG=$HAPROXY_DIR/conf/haproxy.conf
+
+# See how we were called.
+case "$1" in
+  start)
+	[ "$EUID" != "0" ] && exit 4
+ 
+    $HAPROXY_BIN -f $HAPROXY_CONFIG &
+    ;;
+
+  stop)
+	[ "$EUID" != "0" ] && exit 4
+    rc=0
+    kill -9 $(cat $HAPROXY_PID_FILE)
+    ;;
+
+  status)
+    echo ""
+	;;
+  reload|force-reload)
+    echo "" 
+    ;;
+  restart)
+    cd "$CWD"
+	$0 stop
+	$0 start
+	rc=$?
+	;;
+  *)
+        echo $"Usage: $0 {start|stop|status|restart|reload|force-reload}"
+        exit 2
+esac
+
+exit $rc
