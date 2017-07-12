@@ -14,42 +14,44 @@ CWD=$(pwd)
 
 rc=0
 
-HAPROXY_DIR=/opt/haproxy-1.7.8/
-HAPROXY_BIN=${HAPROXY_DIR}/sbin/haproxy
-HAPROXY_PID_FILE=${HAPROXY_DIR}/log/haproxy.pid
+REDIS_BIN=/usr/local/bin/redis-server
 
-HAPROXY_CONFIG=$HAPROXY_DIR/conf/haproxy.conf
+REDIS_CONFIG=/etc/redis.conf
+
+REDIS_PID_FILE=/var/run/redis_6379.pid
+
+function chck_port()
+{
+    netstat -lpn | grep -w 6379 | grep -v grep | wc -l
+}
 
 # See how we were called.
 case "$1" in
   start)
 	[ "$EUID" != "0" ] && exit 4
  
-    $HAPROXY_BIN -f $HAPROXY_CONFIG &
+    $REDIS_BIN $REDIS_CONFIG &
 
-    sleep 2
+    sleep 1
 
-    cnt=$(ps aux | grep -w "/opt/haproxy-1.7.8//sbin/haproxy" | grep -v grep | wc -l)
-    echo $cnt
+    cnt=$(chck_port)
     if [ $cnt -eq 0 ]; then
-        echo "Start failed. Check /var/log/message for detail"
+        echo "Start redis failed."
         exit 5
     fi
     ;;
 
   stop)
 	[ "$EUID" != "0" ] && exit 4
-    rc=0
-    kill -9 $(cat $HAPROXY_PID_FILE)
+    kill -9 $(cat $REDIS_PID_FILE)
     ;;
 
   status)
-      cnt=$(ps aux | grep -w "/opt/haproxy-1.7.8//sbin/haproxy" | grep -v grep | wc -l);
-      echo "cnt: $cnt"
+      cnt=$(chck_port)
       if [ $cnt -eq 1 ] ; then
-          echo "HAProxy is running."
+          echo "Redis is running."
       elif [ $cnt -eq 0 ]; then
-          echo "HAProxy is not running"
+          echo "Redis is not running"
       fi
 	;;
 
