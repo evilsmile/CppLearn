@@ -1,0 +1,3 @@
+使用luarock install redis-lua
+
+或者使用这个库: git@github.com:nrk/redis-lua.git
