@@ -6,14 +6,14 @@ local redis = require "redis"
 
 env = assert(luasql.mysql())
 
-conn = env:connect("es", "root", "123Naruto", "127.0.0.1", 3306)
+mysql_conn = env:connect("es", "root", "123Naruto", "127.0.0.1", 3306)
 
 local redis_cli = redis.connect({
     host = "127.0.0.1",
     port = 6379
 })
 
-cur = conn:execute("SELECT name, userno, level FROM es.users")
+cur = mysql_conn:execute("SELECT name, userno, level FROM es.users")
 
 row = cur:fetch({}, "a")
 while row do
@@ -21,6 +21,10 @@ while row do
     level = row.level
     key = "User." .. row.name
     print ("Adding " .. key)
-    redis_cli:hmset(key, "info", userinfo, "level", level)
+    local hashKV = {
+        info = userinfo,
+        level = level
+    }
+    redis_cli:hmset(key, hashKV)
     row = cur:fetch(row, "a")
 end
