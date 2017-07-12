@@ -34,7 +34,7 @@ ngx.log(ngx.ERR, "new uri: ", new_uri);
 
 -- 以下两种方式进行内部location 的跳转
 -- 用于内部重定向，最好加上return，因为它不会主动返回
--- return ngx.exec(new_uri, "");
+return ngx.exec(new_uri, "");
 
 -- true 表示重新进行location匹配
-ngx.req.set_uri(new_uri, true);
+-- ngx.req.set_uri(new_uri, true);
