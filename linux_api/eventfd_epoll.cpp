@@ -1,3 +1,6 @@
+/*********
+ * 如果读在多次写之后，则读出来的是写入数字的总和
+ * ********/
 #include <unistd.h>
 #include <sys/time.h>
 #include <stdint.h>
@@ -44,6 +47,7 @@ void *read_thread(void *dummy)
             goto fail;
         }
     }
+    sleep(10);
     while (true) {
         ret = epoll_wait(ep_fd, &events[0], 10, 5000);
         if (ret > 0) {
