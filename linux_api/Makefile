@@ -1,6 +1,7 @@
-CXXFLAGS+=-g
+CXXFLAGS+=-g -Werror -Wall
+LDFLAGS+=-lpthread
 
-BINS=wait shm
+BINS=wait shm eventfd_epoll
 all:${BINS}
 
 clean:

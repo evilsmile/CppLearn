@@ -2,6 +2,7 @@
 
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <signal.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
@@ -40,7 +41,6 @@ int main()
         return 0;
     }
 
-    int chld_status;
     int options = 0;
 
     sleep(2);

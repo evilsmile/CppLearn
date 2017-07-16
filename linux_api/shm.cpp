@@ -5,13 +5,13 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-#include <wait.h>
+#include <sys/wait.h>
 
 typedef struct data {
     char num[100];
 }data;
 
-static char *path = ".ian_shm";
+static const char *path = ".ian_shm";
 static int g_shm_id = -1;
 static data* p_data = NULL;
 
