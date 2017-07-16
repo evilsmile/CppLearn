@@ -80,7 +80,7 @@ int do_child()
     std::cout << "child attach success" << std::endl;
 
     std::cout << "=== Read shared memory ===" << std::endl;
-    for (int i = 0; i < sizeof(data); ++i) {
+    for (size_t i = 0; i < sizeof(data); ++i) {
         std::cout << p_data->num[i];
     }
     std::cout << std::endl;

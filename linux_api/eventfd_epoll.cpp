@@ -6,6 +6,10 @@
 #include <sys/epoll.h>
 #include <errno.h>
 
+#include <iostream>
+#include <cstdio>
+#include <cstring>
+
 static int efd = -1;
 
 #define PERR(msg)   \
@@ -31,7 +35,7 @@ void *read_thread(void *dummy)
 
     {
         struct epoll_event read_event;
-        read_event.events = EPOLLHP | EPOLLERR | EPOLLIN;
+        read_event.events = EPOLLHUP | EPOLLERR | EPOLLIN;
         read_event.data.fd = efd;
 
         ret = epoll_ctl(ep_fd, EPOLL_CTL_ADD, efd, &read_event);
@@ -59,7 +63,7 @@ void *read_thread(void *dummy)
                     } else {
                         struct timeval tv;
                         gettimeofday(&tv, NULL);
-                        printf("success read from efd, read %d bytes(%llu) at %lds %ldus\n",
+                        printf("success read from efd, read %d bytes(%ld) at %lds %ldus\n",
                                 ret, count, tv.tv_sec, tv.tv_usec);
                     }
                 }
@@ -108,7 +112,7 @@ int main(int argc, char *argv[])
             } else {
                 struct timeval tv;
                 gettimeofday(&tv, NULL);
-                printf("success write to efd, write %d bytes(%llu) at %lds %ldus\n",
+                printf("success write to efd, write %d bytes(%lu) at %lds %ldus\n",
                         ret, count, tv.tv_sec, tv.tv_usec);
             }
             sleep(1);
