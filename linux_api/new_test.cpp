@@ -43,7 +43,9 @@ int main()
     A *q = new (p) A;
     printf("placement new p:%p q: %p\n", p, q);
 
-    // 从placement中分配的不需要delete，直接调用析构
+    // 使用placement new构造起来的对象或数组，要显式调用它们的析构函数来销毁（析构函数并不释放对象的内存），
+    // 千万不要使用delete.这是因为placement new构造起来的对象或数组大小并不一定等于原来分配的内存大小，
+    // 使用delete会造成内存泄漏或者之后释放内存时出现运行时错误
     q->A::~A();
 
     // 需要释放
