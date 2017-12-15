@@ -10,24 +10,56 @@
 #include <vector>
 #include <hiredis/hiredis.h>
 #include <sstream>
+#include <iomanip>
 
-struct timeval _timeout ;
+struct timeval timeout ;
 redisContext *_redisContext;
 const long long SEC_TO_USEC = 1000000 ;
 
-void connect(const std::string &ip, int port, int timeoutInUsec )
+/* -------------- 计算运行时间函数 -------------- */
+static clock_t start,end;
+void set_start_time()
 {
-    _timeout.tv_sec = timeoutInUsec / SEC_TO_USEC ;
-    _timeout.tv_usec = timeoutInUsec % SEC_TO_USEC ;
+    start = clock();
+}
+void calc_run_time(const std::string& msgHeader)
+{
+    end = clock();
 
-    _redisContext = redisConnectWithTimeout(ip.c_str(), port, _timeout);
+    double run_sec = (double)(end - start)/CLOCKS_PER_SEC;
+    std::cout << std::setiosflags(std::ios::fixed);
+    std::cout << msgHeader << " spend " << std::setprecision(3) << run_sec << "s" << std::endl;
+}
+
+/* -------------- 日志函数 -------------- */
+#define CLOSE_LOG
+void log(const char* format, ...)
+{
+#ifdef CLOSE_LOG
+    return;
+#else
+    va_list ap;
+    va_start(ap, format);
+    vprintf(format, ap);
+    va_end(ap);
+    printf("\n");
+#endif
+}
+
+/* -------------- redis相关操作函数  -------------- */
+bool connect(const std::string &ip, int port, int timeoutInUsec )
+{
+    timeout.tv_sec = timeoutInUsec / SEC_TO_USEC ;
+    timeout.tv_usec = timeoutInUsec % SEC_TO_USEC ;
+
+    _redisContext = redisConnectWithTimeout(ip.c_str(), port, timeout);
     if (_redisContext->err)
     {
-        std::cout << "Cannot connect to redis server. "
-            << " Error : " << _redisContext->errstr
-            << std::endl ;
-        exit(1);
+        log("Cannot connect to redis server. Error : %s",  _redisContext->errstr);
+        return false;
     }
+
+    return true;
 }
 
 void handleTestReply(redisReply* reply)
@@ -73,7 +105,7 @@ redisReply* evalMultipleCommands(int key_num, int arg_num, ...)
     {
         oss_format << " %s";
     }
-//    std::cout << "Foramt: " << oss_format.str() << std::endl;
+    log("Foramt: %s", oss_format.str().c_str());
 
     va_list ap;
     va_start(ap, arg_num);
@@ -83,18 +115,45 @@ redisReply* evalMultipleCommands(int key_num, int arg_num, ...)
     return reply;
 }
 
+
+void basicTest()
+{
+    redisReply* reply = NULL;
+#if 0
+    log("=========== test 1 =========== ...");
+    reply = evalMultipleCommands(2 /* key_num */, 0 /* arg_num */, "return {KEYS[1], KEYS[2]}", "key1", "key2");
+    handleTestReply(reply);
+
+    log("=========== test 2 =========== ...");
+    static const std::string scriptSingleCommand = "local link_id = redis.call(\"INCR\", KEYS[1]) "
+                                                    "return link_id ";
+    reply = evalMultipleCommands(1 /* key_num */, 0 /* arg_num */, scriptSingleCommand.c_str(), "a");
+    handleTestReply(reply);
+
+    log("=========== test 3 =========== ...");
+    static const std::string scriptMultipleCommands = "local link_id = redis.call(\"INCR\", KEYS[1]) "
+                                                      "redis.call(\"HSET\", KEYS[2], link_id, ARGV[1]) "
+                                                      "local data = redis.call(\"HGETALL\",KEYS[2]) "
+                                                      "return data";
+
+    reply = evalMultipleCommands(2 /* key_num */, 1 /* arg_num */, scriptMultipleCommands.c_str(), "vKey1", "hKey2", "vArgsValue");
+    handleTestReply(reply);
+#endif
+}
+
 void testMutex()
 {
-    std::cout << "=========== test mutex ============..." << std::endl;
+    log("=========== test mutex ============...");
     std::string taskId = "78a88bc98-787123cccbdd-2323fffddd";
     std::string key = "timer_task_lock:" + taskId;
 
     static const std::string component_id = "timer_send_comp_id2";
+
     static const std::string scriptTestMutext = "local lock_ret = redis.call(\"SETNX\", KEYS[1], ARGV[1]) "
-                                   "if lock_ret == 1 then "
+                                   "if lock_ret == 1 then " //lock succ
                                    "   return ARGV[1] "
                                    "else "
-                                   "  local lock_holder = redis.call(\"GET\", KEYS[1]) "
+                                   "  local lock_holder = redis.call(\"GET\", KEYS[1]) " // lock failed, return current lock holder
                                    "  return lock_holder "
                                    "end ";
                                    
@@ -106,27 +165,27 @@ void testMutex()
         return;
     }
 
-    std::string locked_component_id;
+    std::string lock_holder;
     switch(reply->type)
     {
         case REDIS_REPLY_STRING:
-            locked_component_id = reply->str;
+            lock_holder = reply->str;
             break;
         case REDIS_REPLY_ERROR:
-            std::cerr << "redis-error when lock task: " << reply->str << std::endl;
+            log("redis-error when lock task: %s", reply->str);
             goto error;
         default:
-            std::cerr << "redis-error when lock task: Invalid return type=>" << reply->type << std::endl;
+            log("redis-error when lock task: Invalid return type=>%d", reply->type);
             goto error;
     }
 
-    if (locked_component_id != component_id)
+    if (lock_holder != component_id)
     {
-        std::cout << "lock failed. holder: " << locked_component_id << std::endl;
+        log("lock failed. holder: %s", lock_holder.c_str());
     }
     else
     {
-        std::cout << "lock succes! holder: " << locked_component_id << std::endl;
+        log("lock succes! holder: %s", lock_holder.c_str());
     }
 
 
@@ -134,37 +193,29 @@ error:
     freeReplyObject(reply);
 }
 
-void basicTest()
-{
-    static const std::string scriptSingleCommand = "local link_id = redis.call(\"INCR\", KEYS[1]) "
-                                                    "return link_id ";
-
-    static const std::string scriptMultipleCommands = "local link_id = redis.call(\"INCR\", KEYS[1]) "
-                                                      "redis.call(\"HSET\", KEYS[2], link_id, ARGV[1]) "
-                                                      "local data = redis.call(\"HGETALL\",KEYS[2]) "
-                                                      "return data";
-
-    redisReply* reply = NULL;
-    std::cout << "=========== test 1 =========== ..." << std::endl;
-    reply = evalMultipleCommands(2 /* key_num */, 0 /* arg_num */, "return {KEYS[1], KEYS[2]}", "key1", "key2");
-    handleTestReply(reply);
-
-    std::cout << "=========== test 2 =========== ..." << std::endl;
-    reply = evalMultipleCommands(1 /* key_num */, 0 /* arg_num */, scriptSingleCommand.c_str(), "a");
-    handleTestReply(reply);
-
-    std::cout << "=========== test 3 =========== ..." << std::endl;
-    reply = evalMultipleCommands(2 /* key_num */, 1 /* arg_num */, scriptMultipleCommands.c_str(), "vKey1", "hKey2", "vArgsValue");
-    handleTestReply(reply);
-}
 
 int main(int argc,char** argv)
 {
-    connect("127.0.0.1", 6379, 1500000);
+    set_start_time();
+    if (!connect("127.0.0.1", 6379, 1500000))
+    {
+        return -1;
+    }
+    calc_run_time("connect-redis");
 
+    // ---> lua功能的简单基本测试 <----
+    set_start_time();
     basicTest();
+    calc_run_time("basic_test");
 
-    testMutex();
+    // ---> 测试设置加锁 <----
+    set_start_time();
+    int test_cnt = 100000;
+    for (int i = 0; i < test_cnt; ++i)
+    {
+        testMutex();
+    }
+    calc_run_time("test-mutex");
 
     return 0;
 }
