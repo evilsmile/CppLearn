@@ -11,6 +11,9 @@ extern void test_httputil();
 void test_json()
 {
     // reader test
+    std::string test_json = "[{\"desc\":\"7\",\"mobile\":\"18664314681\",\"report_status\":\"FAIL\",\"sid\":\"549281e3-0d9a-4ceb-a847-ec7a069d976e\",\"uid\":\"1234567890\",\"user_receive_time\":\"2018-03-20 09:22:57\"},{\"desc\":\"7\",\"mobile\":\"18664314681\",\"report_status\":\"FAIL\",\"sid\":\"7fc726bd-2252-40db-b63c-6da55573490c\",\"uid\":\"1234567890\",\"user_receive_time\":\"2018-03-20 09:23:01\"},{\"desc\":\"7\",\"mobile\":\"18664314681\",\"report_status\":\"FAIL\",\"sid\":\"d1a80e76-fce3-4378-bd24-da7f4e3ca030\",\"uid\":\"1234567890\",\"user_receive_time\":\"2018-03-20 09:23:05\"}]";
+//    std::string test_json = "[{\"desc\":\"7\",\"report_status\":\"FAIL\",\"sid\":\"549281e3-0d9a-4ceb-a847-ec7a069d976e\",\"uid\":\"1234567890\",\"user_receive_time\":\"2018-03-20 09:22:57\"},{\"desc\":\"7\",\"report_status\":\"FAIL\",\"sid\":\"7fc726bd-2252-40db-b63c-6da55573490c\",\"uid\":\"1234567890\",\"user_receive_time\":\"2018-03-20 09:23:01\"},{\"desc\":\"7\",\"report_status\":\"FAIL\",\"sid\":\"d1a80e76-fce3-4378-bd24-da7f4e3ca030\",\"uid\":\"1234567890\",\"user_receive_time\":\"2018-03-20 09:23:05\"}]";
+    /*
     std::string test_json = "["
         "{"
           "\"name\": \"evilsmile\", "
@@ -23,6 +26,7 @@ void test_json()
                "{ \"intere\": \"basketball\", \"age\": 29}"
           "}"
          "]";
+         */
 
     Json::Reader reader;
     Json::Value jr_value;
@@ -32,9 +36,10 @@ void test_json()
     }
 
     for (int i = 0; i < jr_value.size(); i++) {
-        std::string name = jr_value[i]["name"].asString();
-        Json::Value j_info = jr_value[i]["info"];
-        int age = j_info["age"].asInt();
+        std::string name = jr_value[i]["mobile"].asString();
+        Json::Value j_info = jr_value[i]["mobile"];
+//        int age = j_info["mobile"].asInt();
+        int age = 1;
 
         log_trace("parse json result: name[%s] age[%d]", name.c_str(), age);
     }
@@ -67,9 +72,9 @@ void test_url_endecode()
 
 int main()
 {
-    //    test_json();
+     test_json();
     // test_httputil();
-    test_url_endecode();
+    //test_url_endecode();
 
     return 0;
 }

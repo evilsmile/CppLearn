@@ -35,7 +35,8 @@ int main(int argc, char* argv[])
 
     std::string pid = argv[1];
 
-    std::string proc_path = "/proc/"+pid+"/maps";
+    std::string proc_path = "maps";
+    //std::string proc_path = "/proc/"+pid+"/maps";
 
     std::ifstream in(proc_path.c_str(), std::ifstream::in);
 
